@@ -16,7 +16,7 @@
       background: #f5f5f5;
       color: #333;
       line-height: 1.6;
-      padding-bottom: 80px; /* space for sticky footer */
+      padding-bottom: 0;
     }
 
     .container {
@@ -185,6 +185,10 @@
       display: flex;
     }
 
+    body:has(.sticky-footer.visible) {
+      padding-bottom: 80px;
+    }
+
     .cta-button {
       flex: 1;
       display: flex;
@@ -348,6 +352,115 @@
     .lang-toggle:active {
       background: #f5f5f5;
     }
+
+    /* Listing page */
+    .listing-content {
+      display: none;
+    }
+
+    .listing-content.visible {
+      display: block;
+    }
+
+    .listing-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0 16px;
+    }
+
+    .listing-brand {
+      font-size: 20px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .listing-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .listing-card {
+      display: block;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .listing-card:active {
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .listing-card-thumb {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #e0e0e0;
+      overflow: hidden;
+    }
+
+    .listing-card-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .listing-card-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #bbb;
+      font-size: 36px;
+    }
+
+    .listing-card-body {
+      padding: 14px 16px;
+    }
+
+    .listing-card-rent {
+      font-size: 18px;
+      font-weight: 700;
+      color: #e74c3c;
+      margin-bottom: 4px;
+    }
+
+    .listing-card-meta {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 4px;
+    }
+
+    .listing-card-vacancy {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .listing-empty {
+      text-align: center;
+      padding: 48px 20px;
+    }
+
+    .listing-empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .listing-empty-msg {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 24px;
+    }
+
+    .listing-empty-cta {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
   </style>
 </head>
 <body>
@@ -366,6 +479,31 @@
       <div class="error-icon">&#x1F3E0;</div>
       <div class="error-title">找不到此房源</div>
       <div class="error-message">請確認連結是否正確，或聯繫業務取得新連結。</div>
+    </div>
+  </div>
+
+  <!-- Listing content -->
+  <div class="container">
+    <div class="listing-content" id="listing">
+      <div class="listing-header">
+        <span class="listing-brand">Jerry in the house</span>
+        <button class="lang-toggle" id="listing-lang-toggle">EN</button>
+      </div>
+      <div class="listing-grid" id="listing-grid"></div>
+      <div class="listing-empty" id="listing-empty" style="display:none;">
+        <div class="listing-empty-icon">&#x1F3E0;</div>
+        <div class="listing-empty-msg" id="listing-empty-msg"></div>
+        <div class="listing-empty-cta">
+          <a class="cta-button cta-line" id="listing-line-btn" href="#" target="_blank" rel="noopener">
+            <svg class="cta-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+            LINE
+          </a>
+          <a class="cta-button cta-whatsapp" id="listing-whatsapp-btn" href="#" target="_blank" rel="noopener">
+            <svg class="cta-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            WhatsApp
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -563,6 +701,9 @@
         load_fail_title: '載入失敗',
         load_fail_msg: '請稍後再試，或聯繫業務。',
         photo_alt: '房源照片',
+        listing_title: 'Jerry in the house',
+        listing_empty: '目前沒有空房，請保持跟我聯絡！',
+        listing_vacancy: '空房',
       },
       en: {
         title: 'Property Info',
@@ -583,6 +724,9 @@
         load_fail_title: 'Failed to Load',
         load_fail_msg: 'Please try again later or contact the agent.',
         photo_alt: 'Property photo',
+        listing_title: 'Jerry in the house',
+        listing_empty: 'No vacancies at the moment. Stay in touch!',
+        listing_vacancy: 'Vacancy',
       },
     };
 
@@ -714,6 +858,106 @@
     }
 
     // ===========================================
+    // Listing Page
+    // ===========================================
+    let currentData = null;
+
+    function filterActiveProperties(data) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return data.filter(row => {
+        if (!row.vacancy_end) return false;
+        const parts = row.vacancy_end.split('/');
+        const endDate = new Date(parts[0], parts[1] - 1, parts[2]);
+        return endDate >= today;
+      });
+    }
+
+    function buildCard(row) {
+      const card = document.createElement('a');
+      card.className = 'listing-card';
+      card.href = '?id=' + encodeURIComponent(row.id) + '&lang=' + currentLang;
+
+      // Thumbnail
+      const thumb = document.createElement('div');
+      thumb.className = 'listing-card-thumb';
+      if (row.photo_1) {
+        const img = document.createElement('img');
+        img.src = row.photo_1;
+        img.alt = row['district_' + currentLang] || row.district_zh || '';
+        img.loading = 'lazy';
+        thumb.appendChild(img);
+      } else {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'listing-card-placeholder';
+        placeholder.innerHTML = '&#x1F3E0;';
+        thumb.appendChild(placeholder);
+      }
+      card.appendChild(thumb);
+
+      // Body
+      const body = document.createElement('div');
+      body.className = 'listing-card-body';
+
+      // Rent
+      const rent = document.createElement('div');
+      rent.className = 'listing-card-rent';
+      const rentNum = parseInt(row.rent, 10);
+      rent.textContent = isNaN(rentNum) ? row.rent :
+        'NT$ ' + rentNum.toLocaleString('en-US') + ' ' + t('rent_unit');
+      body.appendChild(rent);
+
+      // District + size
+      const meta = document.createElement('div');
+      meta.className = 'listing-card-meta';
+      const district = row['district_' + currentLang] || row.district_zh || '';
+      const size = row.size_ping ? row.size_ping + ' ' + t('size_unit') : '';
+      meta.textContent = district + (district && size ? '  ·  ' : '') + size;
+      body.appendChild(meta);
+
+      // Vacancy
+      const vacancy = document.createElement('div');
+      vacancy.className = 'listing-card-vacancy';
+      vacancy.textContent = t('listing_vacancy') + ' ' + row.vacancy_start + ' ~ ' + row.vacancy_end;
+      body.appendChild(vacancy);
+
+      card.appendChild(body);
+      return card;
+    }
+
+    function renderListing(data) {
+      currentData = data;
+      const active = filterActiveProperties(data);
+
+      // Update page title and lang
+      document.title = t('listing_title');
+      document.documentElement.lang = currentLang === 'zh' ? 'zh-Hant' : 'en';
+
+      // Update toggle text
+      document.getElementById('listing-lang-toggle').textContent = t('toggle_text');
+
+      const grid = document.getElementById('listing-grid');
+      const emptyState = document.getElementById('listing-empty');
+      grid.innerHTML = '';
+
+      if (active.length === 0) {
+        grid.style.display = 'none';
+        emptyState.style.display = '';
+        document.getElementById('listing-empty-msg').textContent = t('listing_empty');
+        document.getElementById('listing-line-btn').href = 'https://line.me/ti/p/~' + config.LINE_ID;
+        document.getElementById('listing-whatsapp-btn').href = 'https://wa.me/' + config.PHONE_NUMBER;
+      } else {
+        grid.style.display = '';
+        emptyState.style.display = 'none';
+        active.forEach(row => {
+          grid.appendChild(buildCard(row));
+        });
+      }
+
+      document.getElementById('listing').classList.add('visible');
+    }
+
+    // ===========================================
     // Render Property
     // ===========================================
     let currentRow = null;
@@ -793,6 +1037,8 @@
       // Re-render
       if (currentRow) {
         renderProperty(currentRow);
+      } else if (currentData) {
+        renderListing(currentData);
       }
     }
 
@@ -803,16 +1049,17 @@
       const { id, lang } = parseQueryParams();
       currentLang = (lang === 'en') ? 'en' : 'zh';
 
-      if (!id) {
-        showError('no_id_title', 'no_id_msg');
-        return;
-      }
-
       try {
         const data = await fetchSheetCSV(config.SHEET_CSV_URL);
-        const row = data.find(r => r.id === id);
-
         document.getElementById('loading').classList.add('hidden');
+
+        if (!id) {
+          renderListing(data);
+          document.getElementById('listing-lang-toggle').addEventListener('click', switchLanguage);
+          return;
+        }
+
+        const row = data.find(r => r.id === id);
 
         if (!row) {
           handleNotFound();
