@@ -591,6 +591,18 @@
     };
 
     // ===========================================
+    // Photo URL Transform
+    // ===========================================
+    function transformPhotoUrl(url) {
+      if (!url) return url;
+      var match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (match) {
+        return 'https://lh3.googleusercontent.com/d/' + match[1] + '=w1000';
+      }
+      return url;
+    }
+
+    // ===========================================
     // CSV Parser
     // ===========================================
     function parseCSV(csvText) {
@@ -781,7 +793,7 @@
         const slide = document.createElement('div');
         slide.className = 'carousel-slide';
         const img = document.createElement('img');
-        img.src = url;
+        img.src = transformPhotoUrl(url);
         img.alt = '房源照片 ' + (i + 1);
         img.loading = i === 0 ? 'eager' : 'lazy';
         slide.appendChild(img);
@@ -883,7 +895,7 @@
       thumb.className = 'listing-card-thumb';
       if (row.photo_1) {
         const img = document.createElement('img');
-        img.src = row.photo_1;
+        img.src = transformPhotoUrl(row.photo_1);
         img.alt = row['district_' + currentLang] || row.district_zh || '';
         img.loading = 'lazy';
         thumb.appendChild(img);
