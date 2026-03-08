@@ -307,6 +307,51 @@
       font-size: 14px;
     }
 
+    .carousel-slide-video {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .carousel-slide-video img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .carousel-play-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.85);
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .carousel-play-btn:active {
+      background: rgba(255, 255, 255, 1);
+    }
+
+    .carousel-slide iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #000;
+    }
+
+    .carousel-slide.playing {
+      cursor: default;
+    }
+
     /* Equipment checklist */
     .equipment-grid {
       display: flex;
@@ -602,6 +647,47 @@
       return url;
     }
 
+    function transformVideoUrl(url) {
+      if (!url) return null;
+      var match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (match) {
+        return 'https://drive.google.com/file/d/' + match[1] + '/preview';
+      }
+      return null;
+    }
+
+    function getVideoThumbnailUrl(url) {
+      if (!url) return null;
+      var match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (match) {
+        return 'https://drive.google.com/thumbnail?id=' + match[1] + '&sz=w1000';
+      }
+      return null;
+    }
+
+    // ===========================================
+    // Media Helpers
+    // ===========================================
+    function getMediaItems(row) {
+      var items = [];
+      for (var i = 1; i <= 8; i++) {
+        var url = row['media_' + i];
+        if (url) {
+          var type = (row['media_' + i + '_type'] || 'photo').trim().toLowerCase();
+          items.push({ url: url, type: type });
+        }
+      }
+      return items;
+    }
+
+    function getFirstPhoto(row) {
+      var items = getMediaItems(row);
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].type === 'photo') return items[i].url;
+      }
+      return null;
+    }
+
     // ===========================================
     // CSV Parser
     // ===========================================
@@ -770,71 +856,153 @@
     }
 
     // ===========================================
-    // Photo Carousel
+    // Media Carousel
     // ===========================================
+    function setupPlayHandlers(track) {
+      track.addEventListener('click', function(e) {
+        var playBtn = e.target.closest('.carousel-play-btn');
+        if (!playBtn) return;
+        var slide = playBtn.closest('.carousel-slide-video');
+        if (!slide || slide.classList.contains('playing')) return;
+
+        var videoSrc = slide.getAttribute('data-video-src');
+        if (!videoSrc) return;
+
+        // Replace thumbnail + play button with iframe
+        slide.innerHTML = '';
+        var iframe = document.createElement('iframe');
+        iframe.src = videoSrc;
+        iframe.setAttribute('allow', 'autoplay; encrypted-media');
+        iframe.setAttribute('allowfullscreen', '');
+        slide.appendChild(iframe);
+        slide.classList.add('playing');
+      });
+    }
+
     function renderCarousel(row) {
-      const photos = [];
-      for (let i = 1; i <= 5; i++) {
-        const url = row['photo_' + i];
-        if (url) photos.push(url);
+      var allItems = getMediaItems(row);
+
+      // Filter to renderable items (photos always; videos only if they have a valid Drive ID)
+      var mediaSlides = [];
+      for (var i = 0; i < allItems.length; i++) {
+        var item = allItems[i];
+        if (item.type === 'photo') {
+          mediaSlides.push(item);
+        } else if (item.type === 'video' && transformVideoUrl(item.url)) {
+          mediaSlides.push(item);
+        }
       }
 
-      const carousel = document.getElementById('carousel');
-      if (photos.length === 0) {
+      var carousel = document.getElementById('carousel');
+      if (mediaSlides.length === 0) {
         carousel.parentElement.style.display = 'none';
         return;
       }
 
-      const track = document.getElementById('carousel-track');
-      const dotsContainer = document.getElementById('carousel-dots');
+      var track = document.getElementById('carousel-track');
+      var dotsContainer = document.getElementById('carousel-dots');
 
       // Build slides
-      photos.forEach((url, i) => {
-        const slide = document.createElement('div');
-        slide.className = 'carousel-slide';
-        const img = document.createElement('img');
-        img.src = transformPhotoUrl(url);
-        img.alt = '房源照片 ' + (i + 1);
-        img.loading = i === 0 ? 'eager' : 'lazy';
-        slide.appendChild(img);
+      mediaSlides.forEach(function(item, i) {
+        var slide = document.createElement('div');
+
+        if (item.type === 'photo') {
+          slide.className = 'carousel-slide';
+          var img = document.createElement('img');
+          img.src = transformPhotoUrl(item.url);
+          img.alt = '房源照片 ' + (i + 1);
+          img.loading = i === 0 ? 'eager' : 'lazy';
+          slide.appendChild(img);
+        } else {
+          // Video slide: thumbnail + play button
+          var embedUrl = transformVideoUrl(item.url);
+          var thumbUrl = getVideoThumbnailUrl(item.url);
+          slide.className = 'carousel-slide carousel-slide-video';
+          slide.setAttribute('data-video-src', embedUrl);
+
+          var img = document.createElement('img');
+          img.src = thumbUrl;
+          img.alt = '房源影片 ' + (i + 1);
+          img.loading = i === 0 ? 'eager' : 'lazy';
+          slide.appendChild(img);
+
+          var playBtn = document.createElement('button');
+          playBtn.className = 'carousel-play-btn';
+          playBtn.textContent = '\u25B6';
+          playBtn.setAttribute('aria-label', '播放影片');
+          slide.appendChild(playBtn);
+        }
+
         track.appendChild(slide);
 
-        const dot = document.createElement('button');
+        var dot = document.createElement('button');
         dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
-        dot.setAttribute('aria-label', '照片 ' + (i + 1));
+        dot.setAttribute('aria-label', (item.type === 'photo' ? '照片' : '影片') + ' ' + (i + 1));
         dotsContainer.appendChild(dot);
       });
 
-      // Hide nav if only 1 photo
-      if (photos.length <= 1) {
+      // Hide nav if only 1 item
+      if (mediaSlides.length <= 1) {
         document.getElementById('carousel-prev').style.display = 'none';
         document.getElementById('carousel-next').style.display = 'none';
         dotsContainer.style.display = 'none';
+        if (mediaSlides.length === 1 && mediaSlides[0].type === 'video') {
+          setupPlayHandlers(track);
+        }
         return;
       }
 
-      let current = 0;
-      const dots = dotsContainer.querySelectorAll('.carousel-dot');
+      var current = 0;
+      var slides = track.querySelectorAll('.carousel-slide');
+      var dots = dotsContainer.querySelectorAll('.carousel-dot');
 
-      function goTo(index) {
-        if (index < 0) index = photos.length - 1;
-        if (index >= photos.length) index = 0;
-        current = index;
-        track.style.transform = 'translateX(-' + (current * 100) + '%)';
-        dots.forEach((d, i) => d.classList.toggle('active', i === current));
+      function stopVideoOnSlide(slideEl) {
+        if (slideEl.classList.contains('playing')) {
+          var videoSrc = slideEl.getAttribute('data-video-src');
+          // Restore thumbnail + play button
+          slideEl.innerHTML = '';
+          slideEl.classList.remove('playing');
+
+          var img = document.createElement('img');
+          var match = videoSrc.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+          if (match) {
+            img.src = 'https://drive.google.com/thumbnail?id=' + match[1] + '&sz=w1000';
+          }
+          img.alt = '房源影片';
+          slideEl.appendChild(img);
+
+          var playBtn = document.createElement('button');
+          playBtn.className = 'carousel-play-btn';
+          playBtn.textContent = '\u25B6';
+          playBtn.setAttribute('aria-label', '播放影片');
+          slideEl.appendChild(playBtn);
+        }
       }
 
-      document.getElementById('carousel-prev').addEventListener('click', () => goTo(current - 1));
-      document.getElementById('carousel-next').addEventListener('click', () => goTo(current + 1));
-      dots.forEach((dot, i) => dot.addEventListener('click', () => goTo(i)));
+      function goTo(index) {
+        if (index < 0) index = mediaSlides.length - 1;
+        if (index >= mediaSlides.length) index = 0;
+        // Stop video on current slide before transitioning
+        stopVideoOnSlide(slides[current]);
+        current = index;
+        track.style.transform = 'translateX(-' + (current * 100) + '%)';
+        dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+      }
+
+      document.getElementById('carousel-prev').addEventListener('click', function() { goTo(current - 1); });
+      document.getElementById('carousel-next').addEventListener('click', function() { goTo(current + 1); });
+      dots.forEach(function(dot, i) { dot.addEventListener('click', function() { goTo(i); }); });
+
+      // Play button handler (delegated)
+      setupPlayHandlers(track);
 
       // Touch swipe support
-      let touchStartX = 0;
-      let touchEndX = 0;
-      carousel.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
-      carousel.addEventListener('touchend', (e) => {
+      var touchStartX = 0;
+      var touchEndX = 0;
+      carousel.addEventListener('touchstart', function(e) { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+      carousel.addEventListener('touchend', function(e) {
         touchEndX = e.changedTouches[0].screenX;
-        const diff = touchStartX - touchEndX;
+        var diff = touchStartX - touchEndX;
         if (Math.abs(diff) > 50) {
           goTo(diff > 0 ? current + 1 : current - 1);
         }
@@ -893,9 +1061,10 @@
       // Thumbnail
       const thumb = document.createElement('div');
       thumb.className = 'listing-card-thumb';
-      if (row.photo_1) {
+      var firstPhoto = getFirstPhoto(row);
+      if (firstPhoto) {
         const img = document.createElement('img');
-        img.src = transformPhotoUrl(row.photo_1);
+        img.src = transformPhotoUrl(firstPhoto);
         img.alt = row['district_' + currentLang] || row.district_zh || '';
         img.loading = 'lazy';
         thumb.appendChild(img);
