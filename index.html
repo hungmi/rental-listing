@@ -811,7 +811,7 @@
         discount: 'Lease over 1 year eligible for discount, details negotiable',
         address_label: 'Address',
         size_label: 'Size',
-        size_unit: 'ping',
+        size_unit: 'm²',
         equipment_label: 'Amenities',
         toggle_text: '中文',
         loading: 'Loading...',
@@ -832,6 +832,13 @@
 
     function t(key) {
       return I18N[currentLang][key] || I18N['zh'][key] || key;
+    }
+
+    function displaySize(ping) {
+      if (!ping) return '—';
+      if (currentLang === 'zh') return ping + ' ' + t('size_unit');
+      var m2 = (parseFloat(ping) * 3.3).toFixed(1);
+      return m2 + ' ' + t('size_unit');
     }
 
     // ===========================================
@@ -1092,7 +1099,7 @@
       const meta = document.createElement('div');
       meta.className = 'listing-card-meta';
       const district = row['district_' + currentLang] || row.district_zh || '';
-      const size = row.size_ping ? row.size_ping + ' ' + t('size_unit') : '';
+      const size = row.size_ping ? displaySize(row.size_ping) : '';
       meta.textContent = district + (district && size ? '  ·  ' : '') + size;
       body.appendChild(meta);
 
@@ -1180,7 +1187,7 @@
       // Detail values — pick _zh or _en column
       const addressKey = 'address_' + currentLang;
       document.getElementById('address').textContent = row[addressKey] || row.address_zh || '';
-      document.getElementById('size').textContent = (row.size_ping || '—') + ' ' + t('size_unit');
+      document.getElementById('size').textContent = displaySize(row.size_ping);
 
       // Equipment label + re-render tags with current language
       document.querySelector('[data-i18n="equipment_label"]').textContent = t('equipment_label');
