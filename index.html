@@ -506,6 +506,40 @@
       gap: 12px;
       justify-content: center;
     }
+
+    /* Description section */
+    .description {
+      padding: 16px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #444;
+    }
+
+    .description p {
+      margin: 0 0 12px 0;
+    }
+
+    .description p:last-child {
+      margin-bottom: 0;
+    }
+
+    .description ul {
+      margin: 0 0 12px 0;
+      padding-left: 20px;
+      list-style: disc;
+    }
+
+    .description li {
+      margin-bottom: 4px;
+    }
+
+    .description strong {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 4px;
+      color: #222;
+      font-size: 15px;
+    }
   </style>
 </head>
 <body>
@@ -610,6 +644,11 @@
         </div>
       </div>
 
+      <!-- Description -->
+      <div class="card" id="description-card" style="display:none;">
+        <div class="description" id="description"></div>
+      </div>
+
     </div>
   </div>
 
@@ -630,7 +669,7 @@
     // config — agent fills in these values
     // ===========================================
     const config = {
-      SHEET_CSV_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBSLDaVfrnYpC6BerthV3T-cwuGETPsAKZm983sKsThfZUzp4wnz-e8nGkzu3Z7j4opmjODFUEDqL3/pub?gid=168737115&single=true&output=csv', // Replace with published Google Sheet CSV URL
+      SHEET_CSV_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBSLDaVfrnYpC6BerthV3T-cwuGETPsAKZm983sKsThfZUzp4wnz-e8nGkzu3Z7j4opmjODFUEDqL3/pub?gid=168737115&single=true&output=csv',
       LINE_ID: 'hungmingtsai',  // Replace with your LINE ID
       PHONE_NUMBER: '886920085183', // Replace with your phone number (e.g., 886912345678)
     };
@@ -691,8 +730,56 @@
     // ===========================================
     // CSV Parser
     // ===========================================
+    function splitCSVRows(csvText) {
+      const rows = [];
+      let current = '';
+      let inQuotes = false;
+
+      for (let i = 0; i < csvText.length; i++) {
+        const char = csvText[i];
+
+        if (inQuotes) {
+          if (char === '"') {
+            if (i + 1 < csvText.length && csvText[i + 1] === '"') {
+              current += '""';
+              i++; // skip escaped quote
+            } else {
+              inQuotes = false;
+              current += char;
+            }
+          } else {
+            current += char;
+          }
+        } else {
+          if (char === '"') {
+            inQuotes = true;
+            current += char;
+          } else if (char === '\n') {
+            // Skip trailing \r before \n
+            if (current.length > 0 && current[current.length - 1] === '\r') {
+              current = current.slice(0, -1);
+            }
+            rows.push(current);
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+      }
+
+      // Push last row if non-empty
+      if (current.trim().length > 0) {
+        if (current[current.length - 1] === '\r') {
+          current = current.slice(0, -1);
+        }
+        rows.push(current);
+      }
+
+      return rows;
+    }
+
     function parseCSV(csvText) {
-      const lines = csvText.trim().split('\n');
+      const lines = splitCSVRows(csvText.trim());
       if (lines.length < 2) return [];
 
       const headers = parseCSVLine(lines[0]);
@@ -1146,6 +1233,62 @@
     }
 
     // ===========================================
+    // Description
+    // ===========================================
+    function escapeHTML(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function renderDescription(row) {
+      const descKey = 'description_' + currentLang;
+      const text = (row[descKey] || row.description_zh || '').trim();
+      const card = document.getElementById('description-card');
+
+      if (!text) {
+        card.style.display = 'none';
+        return;
+      }
+
+      const lines = text.split('\n');
+      let html = '';
+      let inList = false;
+
+      for (let i = 0; i < lines.length; i++) {
+        const trimmed = lines[i].trim();
+
+        if (!trimmed) {
+          if (inList) { html += '</ul>'; inList = false; }
+          html += '</p><p>';
+          continue;
+        }
+
+        if (trimmed.startsWith('*') || trimmed.startsWith('·')) {
+          if (!inList) { html += '<ul>'; inList = true; }
+          html += '<li>' + escapeHTML(trimmed.replace(/^[*·]\s*/, '')) + '</li>';
+          continue;
+        }
+
+        if (inList) { html += '</ul>'; inList = false; }
+
+        if (trimmed.endsWith(':')) {
+          html += '<strong>' + escapeHTML(trimmed) + '</strong>';
+        } else {
+          html += escapeHTML(trimmed) + '<br>';
+        }
+      }
+
+      if (inList) html += '</ul>';
+
+      html = '<p>' + html + '</p>';
+      html = html.replace(/<p><\/p>/g, '');
+
+      document.getElementById('description').innerHTML = html;
+      card.style.display = '';
+    }
+
+    // ===========================================
     // Render Property
     // ===========================================
     let currentRow = null;
@@ -1192,6 +1335,9 @@
       // Equipment label + re-render tags with current language
       document.querySelector('[data-i18n="equipment_label"]').textContent = t('equipment_label');
       renderEquipment(row);
+
+      // Description
+      renderDescription(row);
 
       // Set CTA links
       document.getElementById('line-btn').href = 'https://line.me/ti/p/~' + config.LINE_ID;

@@ -21,6 +21,10 @@ shaping: true
 | 🟡 R10 | Agent can paste standard Google Drive sharing URLs for photos and videos and they display correctly on the page | Must-have |
 | R11 | Property listings can include a video that readers can watch directly on the page | Must-have |
 | R12 | Agent can interleave photos and videos in a custom order within the carousel | Must-have |
+| 🟡 R13 | Each property detail page displays a rich text description (headings, bullet points, line breaks) written by the agent | Core goal |
+| 🟡 R14 | Agent can write and edit descriptions without coding — same ease-of-use as the current Google Sheet workflow | Must-have |
+| 🟡 R15 | Description supports bilingual content (Chinese + English versions) | Must-have |
+| 🟡 R16 | Multiline text with structure (paragraphs, lists, sub-sections) survives the data pipeline from source to rendered page | Must-have |
 
 ---
 
@@ -34,6 +38,7 @@ shaping: true
 | A1.1b | **URL rewrite**: Constructs `https://lh3.googleusercontent.com/d/{ID}=w1000` from extracted ID. The `=w1000` suffix requests a 1000px-wide image from Google's image proxy. | |
 | A1.1c | **Passthrough**: If URL doesn't match the Drive pattern, returns it unchanged. Supports direct image URLs (placehold.co, imgur, any `https://.../*.jpg`). | |
 | A1.1d | **Call sites**: Called from `renderCarousel()` for photo-type slides and from `buildCard()` via `getFirstPhoto()` for listing card thumbnails. | |
+| 🟡 **A1.3** | **Multiline-aware CSV parser**: Replace naive `csvText.split('\n')` row-splitting in `parseCSV()` with a quote-aware splitter that keeps newlines inside quoted fields intact. Google Sheets CSV export wraps multiline cells in double quotes per RFC 4180 — the format is fine, our parser just ignores the quoting when splitting rows. `parseCSVLine()` already handles quoted fields correctly within a single line; only the row-splitting logic needs to change. | |
 | **A1.2** | **Bilingual data**: Sheet has paired columns for bilingual fields — e.g., `address_zh` / `address_en`. Equipment checklist uses icons/universal labels, so no translation needed there. Rent/dates/numbers are language-neutral. | |
 | **A2** | **Page template**: Clean card layout — property media carousel (photos + videos) at top, key info (rent, vacancy, discount) in a summary block, then address, size, equipment checklist below. | |
 | **A2.1** | **Mobile-first responsive**: Single-column card layout optimized for phone screens. Large tap targets for buttons, readable text without zooming. | |
@@ -48,6 +53,9 @@ shaping: true
 | A7.3 | **Mixed carousel rendering**: `getMediaItems(row)` reads `media_N` + `media_N_type` pairs into an ordered list. `renderCarousel()` iterates the list: photo items → `<img>` via `transformPhotoUrl()`; video items → thumbnail image (`drive.google.com/thumbnail?id={ID}&sz=w1000`) with play button overlay. Carousel keeps 4:3 aspect ratio — videos letterbox inside the container. | |
 | A7.4 | **Thumbnail-to-iframe swap**: Tap play button on video slide → replace thumbnail with `<iframe src=".../preview" allow="autoplay; encrypted-media" allowfullscreen>`. On `goTo()` (swipe/button/dot), if leaving a playing video slide → remove iframe, restore thumbnail + play button (stops playback, prevents background audio). | |
 | A7.5 | **Listing card thumbnail**: `getFirstPhoto(row)` scans `media_1`–`media_8`, returns the first item where type = `photo`. Used by `buildCard()` for the listing page card thumbnail. Skips video items — listing cards always show a static photo. | |
+| 🟡 **A8** | **Property description**: Agent writes a free-form marketing description per property in the Google Sheet. Description appears on the detail page as a rich text section below the summary info block. Supports headings, bullet points, paragraphs, and line breaks. Bilingual via paired columns (`description_zh` / `description_en`). | |
+| 🟡 A8.1 | **Description columns**: `description_zh` and `description_en` columns in the Sheet. Agent types multiline text directly in the cell (Google Sheets supports this with Alt+Enter / Ctrl+Enter). CSV export wraps the cell in double quotes with literal newlines — handled by A1.3. | |
+| 🟡 A8.2 | **Description rendering**: `renderDescription(row)` reads `row['description_' + currentLang]`, converts plain text to HTML preserving structure: blank lines → paragraph breaks, lines starting with `*` → bullet list items, lines starting with `#` (or all-caps/colon-ending) → bold headings. Renders in a new `.description` section on the detail page between property info and equipment checklist. If description is empty, section is hidden. | |
 
 ---
 
@@ -74,6 +82,8 @@ shaping: true
 | `equip_desk` | `FALSE` | Desk |
 | `equip_wardrobe` | `TRUE` | Wardrobe |
 | `equip_*` | ... | Extensible — agent adds new equipment columns as needed |
+| 🟡 `description_zh` | `精緻共居空間...` | Chinese description (multiline, free-form text) |
+| 🟡 `description_en` | `Chic Shared Living...` | English description (multiline, free-form text) |
 
 ---
 
@@ -94,35 +104,44 @@ shaping: true
 | 🟡 R10 | Agent can paste standard Google Drive sharing URLs for photos and videos and they display correctly on the page | Must-have | ✅ |
 | R11 | Property listings can include a video that readers can watch directly on the page | Must-have | ✅ |
 | 🟡 R12 | Agent can interleave photos and videos in a custom order within the carousel | Must-have | ✅ |
+| 🟡 R13 | Each property detail page displays a rich text description (headings, bullet points, line breaks) written by the agent | Core goal | ✅ |
+| 🟡 R14 | Agent can write and edit descriptions without coding — same ease-of-use as the current Google Sheet workflow | Must-have | ✅ |
+| 🟡 R15 | Description supports bilingual content (Chinese + English versions) | Must-have | ✅ |
+| 🟡 R16 | Multiline text with structure (paragraphs, lists, sub-sections) survives the data pipeline from source to rendered page | Must-have | ✅ |
 
-All requirements pass. No flags remaining. R11 + R12 resolved by spike v2 (see `spike-a7-video-support.md`).
+R0–R12: All pass. R11 + R12 resolved by spike v2 (see `spike-a7-video-support.md`).
+🟡 R13–R16: Pass via new parts A1.3 (multiline CSV parser fix) + A8 (description columns + rendering). Spike confirmed Google Sheets CSV export handles multiline cells correctly (RFC 4180 quoting) — the blocker was our naive row-splitting parser, not the data format.
 
 ---
 
 ## Parts x Requirements
 
-| Part | | R0 | R1 | R2 | R3 | R4 | R5 | R6 | R7 | R8 | R9 | R10 | R11 | R12 |
-|------|------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **A1** | Data source (Google Sheet + client JS, unified media columns) | | | | | ✅ | ✅ | | | | | | | |
-| **A1.1** | Photo URL transform (`transformPhotoUrl()`) | | | | | ✅ | | 🟡 ✅ | | | | ✅ | | |
-| A1.1a | Pattern recognition (regex extracts file ID from Drive URL) | | | | | | | | | | | ✅ | | |
-| A1.1b | URL rewrite (`lh3.googleusercontent.com/d/{ID}=w1000`) | | | | | | | | | | | ✅ | | |
-| A1.1c | Passthrough (non-Drive URLs unchanged) | | | | | ✅ | | | | | | ✅ | | |
-| A1.1d | Call sites (carousel photo slides, listing card via `getFirstPhoto()`) | | | | | | | 🟡 ✅ | | | | ✅ | | |
-| **A1.2** | Bilingual data (paired columns) | | | | | ✅ | | | ✅ | | | | | |
-| **A2** | Page template (card layout) | ✅ | ✅ | | | | ✅ | ✅ | | | | | | |
-| **A2.1** | Mobile-first responsive | | | | | | | | | ✅ | | | | |
-| **A2.2** | Language toggle (ZH/EN) | | | | | | | | ✅ | | | | | |
-| **A3** | Discount display | ✅ | ✅ | | | | | ✅ | | | | | | |
-| **A4** | Messaging CTA (LINE + WhatsApp) | | | ✅ | | | | | | | | | | |
-| **A5** | Per-property URL (?id=xxx&lang=xx) | ✅ | | | ✅ | | ✅ | | | | | | | |
-| **A6** | Listing page (rich cards, auto-filter, thumbnail via `getFirstPhoto()`) | | ✅ | | | | | | | ✅ | ✅ | | | |
-| **A7** | Mixed media carousel | | | | | | | | | | | | ✅ | ✅ |
-| A7.1 | Unified media columns (`media_1-8` + `media_1_type-8_type`) | | | | | ✅ | | | | | | | ✅ | ✅ |
-| A7.2 | Video URL transform (`transformVideoUrl()`) | | | | | ✅ | | | | | | 🟡 ✅ | ✅ | |
-| A7.3 | Mixed carousel rendering (`getMediaItems()`, photo `<img>` / video thumbnail + play) | | | | | | | 🟡 ✅ | | ✅ | | | ✅ | ✅ |
-| A7.4 | Thumbnail-to-iframe swap (tap play → iframe; swipe away → stop) | | | | | | | | | ✅ | | | ✅ | |
-| A7.5 | Listing card thumbnail (`getFirstPhoto()`) | | | | | | | | | | ✅ | | | |
+| Part | | R0 | R1 | R2 | R3 | R4 | R5 | R6 | R7 | R8 | R9 | R10 | R11 | R12 | R13 | R14 | R15 | R16 |
+|------|------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **A1** | Data source (Google Sheet + client JS, unified media columns) | | | | | ✅ | ✅ | | | | | | | | | | | |
+| **A1.1** | Photo URL transform (`transformPhotoUrl()`) | | | | | ✅ | | 🟡 ✅ | | | | ✅ | | | | | | |
+| A1.1a | Pattern recognition (regex extracts file ID from Drive URL) | | | | | | | | | | | ✅ | | | | | | |
+| A1.1b | URL rewrite (`lh3.googleusercontent.com/d/{ID}=w1000`) | | | | | | | | | | | ✅ | | | | | | |
+| A1.1c | Passthrough (non-Drive URLs unchanged) | | | | | ✅ | | | | | | ✅ | | | | | | |
+| A1.1d | Call sites (carousel photo slides, listing card via `getFirstPhoto()`) | | | | | | | 🟡 ✅ | | | | ✅ | | | | | | |
+| 🟡 **A1.3** | Multiline-aware CSV parser (quote-aware row splitting) | | | | | ✅ | | | | | | | | | | ✅ | | ✅ |
+| **A1.2** | Bilingual data (paired columns) | | | | | ✅ | | | ✅ | | | | | | | | 🟡 ✅ | |
+| **A2** | Page template (card layout) | ✅ | ✅ | | | | ✅ | ✅ | | | | | | | | | | |
+| **A2.1** | Mobile-first responsive | | | | | | | | | ✅ | | | | | | | | |
+| **A2.2** | Language toggle (ZH/EN) | | | | | | | | ✅ | | | | | | | | | |
+| **A3** | Discount display | ✅ | ✅ | | | | | ✅ | | | | | | | | | | |
+| **A4** | Messaging CTA (LINE + WhatsApp) | | | ✅ | | | | | | | | | | | | | | |
+| **A5** | Per-property URL (?id=xxx&lang=xx) | ✅ | | | ✅ | | ✅ | | | | | | | | | | | |
+| **A6** | Listing page (rich cards, auto-filter, thumbnail via `getFirstPhoto()`) | | ✅ | | | | | | | ✅ | ✅ | | | | | | | |
+| **A7** | Mixed media carousel | | | | | | | | | | | | ✅ | ✅ | | | | |
+| A7.1 | Unified media columns (`media_1-8` + `media_1_type-8_type`) | | | | | ✅ | | | | | | | ✅ | ✅ | | | | |
+| A7.2 | Video URL transform (`transformVideoUrl()`) | | | | | ✅ | | | | | | 🟡 ✅ | ✅ | | | | | |
+| A7.3 | Mixed carousel rendering (`getMediaItems()`, photo `<img>` / video thumbnail + play) | | | | | | | 🟡 ✅ | | ✅ | | | ✅ | ✅ | | | | |
+| A7.4 | Thumbnail-to-iframe swap (tap play → iframe; swipe away → stop) | | | | | | | | | ✅ | | | ✅ | | | | | |
+| A7.5 | Listing card thumbnail (`getFirstPhoto()`) | | | | | | | | | | ✅ | | | | | | | |
+| 🟡 **A8** | Property description (free-form marketing text on detail page) | ✅ | ✅ | | | | | | | | | | | | ✅ | | | |
+| 🟡 A8.1 | Description columns (`description_zh` / `description_en`) | | | | | ✅ | | | ✅ | | | | | | | ✅ | ✅ | |
+| 🟡 A8.2 | Description rendering (`renderDescription()`, plain text → HTML) | | | | | | | | | ✅ | | | | | ✅ | | | |
 
 ---
 
@@ -157,6 +176,7 @@ All requirements pass. No flags remaining. R11 + R12 resolved by spike v2 (see `
 | U15 | P2 | equipment checklist | render | — | — |
 | U16 | P2 | LINE CTA button | click | → external | — |
 | U17 | P2 | WhatsApp CTA button | click | → external | — |
+| 🟡 U18 | P2 | description section (headings, bullets, paragraphs) | render | — | — |
 
 ### Code Affordances
 
@@ -170,7 +190,7 @@ All requirements pass. No flags remaining. R11 + R12 resolved by spike v2 (see `
 | N6 | P1 | `renderListing(data)` | call | → N7, → N8 | → U1, U6 |
 | N7 | P1 | `filterActiveProperties(data)` | call | — | → N6 |
 | N8 | P1 | `buildCard(row)` | call | → N20 | → U3, U4, U5 |
-| N9 | P2 | `renderProperty(row)` | call | → N10, → N11, → S5 | → U14 |
+| N9 | P2 | `renderProperty(row)` | call | → N10, → N11, 🟡 → N22, → S5 | → U14 |
 | N10 | P2 | `renderCarousel(row)` | call | → N17 | → U8, U9, U10, U11, U12 |
 | N11 | P2 | `renderEquipment(row)` | call | — | → U15 |
 | N12 | — | `t(key)` i18n lookup | call | — | → caller |
@@ -183,6 +203,7 @@ All requirements pass. No flags remaining. R11 + R12 resolved by spike v2 (see `
 | N19 | P2 | play tap handler: swap thumbnail → `<iframe>` | call | → N18 | → U13 |
 | N20 | — | `getFirstPhoto(row)` | call | → N13 | → N8 |
 | N21 | P2 | `stopVideoOnSlide(el)`: swap `<iframe>` → thumbnail | call | — | → U9 |
+| 🟡 N22 | P2 | `renderDescription(row)`: read `row['description_' + currentLang]`, convert plain text to HTML (blank lines → `<p>`, `*` lines → `<li>`, heading lines → `<strong>`), insert into `.description` section. Hidden if empty. | call | — | → U18 |
 
 ### Data Stores
 
@@ -234,9 +255,11 @@ flowchart TB
         U15["U15: equipment checklist"]
         U16["U16: LINE button"]
         U17["U17: WhatsApp button"]
+        U18["U18: description section"]
         N9["N9: renderProperty()"]
         N10["N10: renderCarousel()"]
         N11["N11: renderEquipment()"]
+        N22["N22: renderDescription()"]
         N16["N16: goTo(index)"]
         N19["N19: play tap handler"]
         N21["N21: stopVideoOnSlide()"]
@@ -280,9 +303,11 @@ flowchart TB
     %% P2 render flow
     N9 --> N10
     N9 --> N11
+    N9 --> N22
     N9 --> S5
     N9 -.-> U14
     N11 -.-> U15
+    N22 -.-> U18
 
     %% Carousel render
     N10 --> N17
@@ -331,8 +356,8 @@ flowchart TB
     classDef store fill:#e6e6fa,stroke:#9370db,color:#000
     classDef external fill:#fff8dc,stroke:#daa520,color:#000
 
-    class U1,U2,U3,U4,U5,U6,U7,U8,U9,U10,U11,U12,U13,U14,U15,U16,U17 ui
-    class N1,N2,N3,N4,N5,N6,N7,N8,N9,N10,N11,N12,N13,N14,N15,N16,N17,N18,N19,N20,N21 nonui
+    class U1,U2,U3,U4,U5,U6,U7,U8,U9,U10,U11,U12,U13,U14,U15,U16,U17,U18 ui
+    class N1,N2,N3,N4,N5,N6,N7,N8,N9,N10,N11,N12,N13,N14,N15,N16,N17,N18,N19,N20,N21,N22 nonui
     class S1,S2,S3,S4,S5 store
     class ext1,ext2 external
 ```
@@ -355,6 +380,7 @@ flowchart TB
 |---|-------|-------|-------------|------|
 | V6 | Migrate to unified media columns | A7.1, A7.3 (photo only), A7.5 | N17, N20; modify N8, N10 | "Photos display same as before, but data comes from `media_1-8` columns with type dropdown" |
 | V7 | Video in carousel | A7.2, A7.3 (video), A7.4 | U9, U12, U13, N18, N19, N21; modify N16, N17 | "Videos appear between photos with ▶; tap to play inline; swipe away stops playback" |
+| 🟡 V10 | Property description with multiline CSV support | A1.3, A8, A8.1, A8.2 | N22, U18; modify N9, `parseCSV()` | "Agent types multiline description in Sheet. Detail page renders headings, bullets, paragraphs. ZH/EN toggle switches. Empty descriptions hidden." |
 
 ---
 
@@ -420,6 +446,52 @@ Adds video support to the mixed carousel. Video slides render as thumbnail + pla
 
 ---
 
+### V10: Property description with multiline CSV support
+
+Two orthogonal changes bundled because the parser fix has no standalone demo.
+
+**1. Parser fix (A1.3)**
+
+| # | Affordance | Change |
+|---|------------|--------|
+| `parseCSV()` | Was: `csvText.split('\n')` splits all newlines into rows. Now: quote-aware row splitter — tracks `inQuotes` state, only splits on `\n` outside quoted fields. `parseCSVLine()` unchanged (already handles quotes within a line). |
+
+**2. Description feature (A8)**
+
+**New affordances**
+
+| # | Place | Affordance | Control | Wires Out | Returns To |
+|---|-------|------------|---------|-----------|------------|
+| U18 | P2 | description section (headings, bullets, paragraphs) | render | — | — |
+| N22 | P2 | `renderDescription(row)`: read `row['description_' + currentLang]`, convert plain text → HTML, insert into `.description` section. Hidden if empty. | call | — | → U18 |
+
+**Modified affordances**
+
+| # | Affordance | Change |
+|---|------------|--------|
+| N9 | `renderProperty(row)` | Now also calls N22 `renderDescription(row)`. Description section placed between property info (U14) and equipment checklist (U15). |
+
+**Text → HTML conversion rules (N22)**
+
+| Input pattern | Output |
+|---------------|--------|
+| Blank line | `</p><p>` (paragraph break) |
+| Line starting with `*` | `<li>` (bullet item, wrapped in `<ul>`) |
+| Line ending with `:` | `<strong>` (heading) |
+| Other lines | Appended to current `<p>` with `<br>` |
+
+**New CSS**
+
+| Element | Style |
+|---------|-------|
+| `.description` | Padding 16px, font-size 14px, line-height 1.6, color #444 |
+| `.description ul` | Padding-left 20px, list-style disc |
+| `.description strong` | Display block, margin-top 12px, color #222 |
+
+**Demo:** "Agent types multiline description with headings and bullets in Google Sheet. Detail page renders rich formatted text. ZH/EN toggle switches description language. Empty descriptions hidden."
+
+---
+
 ### Slice diagram
 
 ```mermaid
@@ -436,10 +508,12 @@ flowchart TB
         U11["U11: dots"]
         U12["U12: play button"]
         U13["U13: video iframe"]
+        U18["U18: description section"]
         N10["N10: renderCarousel()"]
         N16["N16: goTo()"]
         N19["N19: play tap handler"]
         N21["N21: stopVideoOnSlide()"]
+        N22["N22: renderDescription()"]
     end
 
     N17["N17: getMediaItems()"]
@@ -476,13 +550,18 @@ flowchart TB
     N16 --> N21
     N21 -.-> U9
 
+    %% V10 wiring
+    N22 -.-> U18
+
     classDef built fill:#d3d3d3,stroke:#808080,color:#000
     classDef v6 fill:#e8f5e9,stroke:#4caf50,color:#000
     classDef v7 fill:#e3f2fd,stroke:#2196f3,color:#000
+    classDef v10 fill:#fff3e0,stroke:#ff9800,color:#000
 
     class U8,U3,N10,N8 built
     class N17,N20 v6
     class U9,U12,U13,N18,N19,N21 v7
+    class U18,N22 v10
     class N13 built
     class N16,U10,U11 built
 
@@ -490,4 +569,4 @@ flowchart TB
     style P2 fill:none,stroke:#999
 ```
 
-**Legend:** Grey = already built (modified in-place), Green = V6 (new), Blue = V7 (new)
+**Legend:** Grey = already built (modified in-place), Green = V6 (new), Blue = V7 (new), Orange = V10 (new)
