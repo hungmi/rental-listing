@@ -55,7 +55,7 @@ shaping: true
 | A7.5 | **Listing card thumbnail**: `getFirstPhoto(row)` scans `media_1`–`media_8`, returns the first item where type = `photo`. Used by `buildCard()` for the listing page card thumbnail. Skips video items — listing cards always show a static photo. | |
 | 🟡 **A8** | **Property description**: Agent writes a free-form marketing description per property in the Google Sheet. Description appears on the detail page as a rich text section below the summary info block. Supports headings, bullet points, paragraphs, and line breaks. Bilingual via paired columns (`description_zh` / `description_en`). | |
 | 🟡 A8.1 | **Description columns**: `description_zh` and `description_en` columns in the Sheet. Agent types multiline text directly in the cell (Google Sheets supports this with Alt+Enter / Ctrl+Enter). CSV export wraps the cell in double quotes with literal newlines — handled by A1.3. | |
-| 🟡 A8.2 | **Description rendering**: `renderDescription(row)` reads `row['description_' + currentLang]`, converts plain text to HTML preserving structure: blank lines → paragraph breaks, lines starting with `*` → bullet list items, lines starting with `#` (or all-caps/colon-ending) → bold headings. Renders in a new `.description` section on the detail page between property info and equipment checklist. If description is empty, section is hidden. | |
+| 🟡 A8.2 | **Description rendering**: `renderDescription(row)` reads `row['description_' + currentLang]`, passes text through `marked.parse()` (marked.js via CDN) to convert markdown to HTML. Supports full markdown: `#`/`##` headings, `- ` bullets, `**bold**`, `*italic*`, links, etc. Renders in a new `.description` section on the detail page between property info and equipment checklist. If description is empty, section is hidden. | |
 
 ---
 
@@ -203,7 +203,7 @@ R0–R12: All pass. R11 + R12 resolved by spike v2 (see `spike-a7-video-support.
 | N19 | P2 | play tap handler: swap thumbnail → `<iframe>` | call | → N18 | → U13 |
 | N20 | — | `getFirstPhoto(row)` | call | → N13 | → N8 |
 | N21 | P2 | `stopVideoOnSlide(el)`: swap `<iframe>` → thumbnail | call | — | → U9 |
-| 🟡 N22 | P2 | `renderDescription(row)`: read `row['description_' + currentLang]`, convert plain text to HTML (blank lines → `<p>`, `*` lines → `<li>`, heading lines → `<strong>`), insert into `.description` section. Hidden if empty. | call | — | → U18 |
+| 🟡 N22 | P2 | `renderDescription(row)`: read `row['description_' + currentLang]`, pass through `marked.parse()` for markdown → HTML, insert into `.description` section. Hidden if empty. | call | — | → U18 |
 
 ### Data Stores
 
@@ -471,22 +471,18 @@ Two orthogonal changes bundled because the parser fix has no standalone demo.
 |---|------------|--------|
 | N9 | `renderProperty(row)` | Now also calls N22 `renderDescription(row)`. Description section placed between property info (U14) and equipment checklist (U15). |
 
-**Text → HTML conversion rules (N22)**
+**Markdown rendering**
 
-| Input pattern | Output |
-|---------------|--------|
-| Blank line | `</p><p>` (paragraph break) |
-| Line starting with `*` | `<li>` (bullet item, wrapped in `<ul>`) |
-| Line ending with `:` | `<strong>` (heading) |
-| Other lines | Appended to current `<p>` with `<br>` |
+Uses `marked.js` (v15, CDN) for full markdown → HTML conversion. Agent writes standard markdown in the Google Sheet cell (`#` headings, `- ` bullets, `**bold**`, etc.).
 
 **New CSS**
 
 | Element | Style |
 |---------|-------|
-| `.description` | Padding 16px, font-size 14px, line-height 1.6, color #444 |
-| `.description ul` | Padding-left 20px, list-style disc |
-| `.description strong` | Display block, margin-top 12px, color #222 |
+| `.description` | Padding 16px, font-size 14px, line-height 1.7, color #444 |
+| `.description h1/h2/h3` | Sized 18/16/15px, color #222 |
+| `.description ul/ol` | Padding-left 20px, disc/decimal |
+| `.description a` | Blue (#2563eb), underlined |
 
 **Demo:** "Agent types multiline description with headings and bullets in Google Sheet. Detail page renders rich formatted text. ZH/EN toggle switches description language. Empty descriptions hidden."
 

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>房源資訊</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js"></script>
   <style>
     * {
       margin: 0;
@@ -515,6 +516,24 @@
       color: #444;
     }
 
+    .description h1,
+    .description h2,
+    .description h3 {
+      margin: 16px 0 8px 0;
+      color: #222;
+      line-height: 1.3;
+    }
+
+    .description h1 { font-size: 18px; }
+    .description h2 { font-size: 16px; }
+    .description h3 { font-size: 15px; }
+
+    .description h1:first-child,
+    .description h2:first-child,
+    .description h3:first-child {
+      margin-top: 0;
+    }
+
     .description p {
       margin: 0 0 12px 0;
     }
@@ -523,22 +542,21 @@
       margin-bottom: 0;
     }
 
-    .description ul {
+    .description ul,
+    .description ol {
       margin: 0 0 12px 0;
       padding-left: 20px;
-      list-style: disc;
     }
+
+    .description ul { list-style: disc; }
 
     .description li {
       margin-bottom: 4px;
     }
 
-    .description strong {
-      display: block;
-      margin-top: 12px;
-      margin-bottom: 4px;
-      color: #222;
-      font-size: 15px;
+    .description a {
+      color: #2563eb;
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -1235,12 +1253,6 @@
     // ===========================================
     // Description
     // ===========================================
-    function escapeHTML(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
-
     function renderDescription(row) {
       const descKey = 'description_' + currentLang;
       const text = (row[descKey] || row.description_zh || '').trim();
@@ -1251,40 +1263,7 @@
         return;
       }
 
-      const lines = text.split('\n');
-      let html = '';
-      let inList = false;
-
-      for (let i = 0; i < lines.length; i++) {
-        const trimmed = lines[i].trim();
-
-        if (!trimmed) {
-          if (inList) { html += '</ul>'; inList = false; }
-          html += '</p><p>';
-          continue;
-        }
-
-        if (trimmed.startsWith('*') || trimmed.startsWith('·')) {
-          if (!inList) { html += '<ul>'; inList = true; }
-          html += '<li>' + escapeHTML(trimmed.replace(/^[*·]\s*/, '')) + '</li>';
-          continue;
-        }
-
-        if (inList) { html += '</ul>'; inList = false; }
-
-        if (trimmed.endsWith(':')) {
-          html += '<strong>' + escapeHTML(trimmed) + '</strong>';
-        } else {
-          html += escapeHTML(trimmed) + '<br>';
-        }
-      }
-
-      if (inList) html += '</ul>';
-
-      html = '<p>' + html + '</p>';
-      html = html.replace(/<p><\/p>/g, '');
-
-      document.getElementById('description').innerHTML = html;
+      document.getElementById('description').innerHTML = marked.parse(text);
       card.style.display = '';
     }
 
