@@ -1,5 +1,5 @@
-id,district_zh,district_en,address_zh,address_en,size_ping,rent,vacancy_start,vacancy_end,media_1,media_1_type,media_2,media_2_type,media_3,media_3_type,media_4,media_4_type,equip_ac,equip_washer,equip_fridge,equip_internet,equip_water_heater,equip_desk,equip_wardrobe,description_zh,description_en
-daan-3F,台北市大安區,"Da'an, Taipei","台北市大安區復興南路一段100號3樓","3F, No.100, Sec.1, Fuxing S. Rd, Da'an, Taipei",12,18000,2026/4/1,2026/5/1,https://drive.google.com/file/d/1GRBFR-yB2Ish3a6JODmDhuekfyfOLPK-/view?usp=drive_link,photo,https://placehold.co/800x600/d8e8d8/666?text=Room+2,photo,https://drive.google.com/file/d/1qdYdil3QyGKolPTcjbBxsONNHfENXkif/view?usp=sharing,video,https://placehold.co/800x600/d8d8e8/666?text=Room+3,photo,TRUE,TRUE,TRUE,TRUE,TRUE,FALSE,TRUE,"# 大安區精緻共居空間 | 近復興站 | 短租友善
+id,district_zh,district_en,address_zh,address_en,size_m2,rent,vacancy_start,vacancy_end,media_1,media_1_type,media_2,media_2_type,media_3,media_3_type,media_4,media_4_type,equip_ac,equip_washer,equip_fridge,equip_internet,equip_water_heater,equip_desk,equip_wardrobe,description_zh,description_en
+daan-3F,台北市大安區,"Da'an, Taipei","台北市大安區復興南路一段100號3樓","3F, No.100, Sec.1, Fuxing S. Rd, Da'an, Taipei",39.7,18000,2026/4/1,2026/5/1,https://drive.google.com/file/d/1GRBFR-yB2Ish3a6JODmDhuekfyfOLPK-/view?usp=drive_link,photo,https://placehold.co/800x600/d8e8d8/666?text=Room+2,photo,https://drive.google.com/file/d/1qdYdil3QyGKolPTcjbBxsONNHfENXkif/view?usp=sharing,video,https://placehold.co/800x600/d8d8e8/666?text=Room+3,photo,TRUE,TRUE,TRUE,TRUE,TRUE,FALSE,TRUE,"# 大安區精緻共居空間 | 近復興站 | 短租友善
 
 找的不只是一個房間？加入我們充滿活力的國際社群！
 
@@ -54,6 +54,6 @@ _test_
 
 - Electricity: NT$ 4/kWh (Winter) | NT$ 6/kWh (Summer)
 - Monthly Flat Fees: Gas ($150), Water ($150), Internet ($200), Trash Service ($400)"
-xinyi-5F,台北市信義區,"Xinyi, Taipei","台北市信義區信義路五段50號5樓","5F, No.50, Sec.5, Xinyi Rd, Xinyi, Taipei",8,15000,2026/3/15,2026/4/15,https://placehold.co/800x600/e8e8e8/999?text=Room+A,photo,https://placehold.co/800x600/d8e8d8/666?text=Room+B,photo,,,,,TRUE,FALSE,TRUE,TRUE,FALSE,TRUE,FALSE,,"Cozy studio in Xinyi district, walking distance to Taipei 101."
-zhongshan-2F,台北市中山區,"Zhongshan, Taipei","台北市中山區南京東路二段30號2樓","2F, No.30, Sec.2, Nanjing E. Rd, Zhongshan, Taipei",10,16500,2026/5/1,2026/6/1,,,,,,,,,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,,
-expired-1F,台北市松山區,"Songshan, Taipei","台北市松山區南京東路五段10號1樓","1F, No.10, Sec.5, Nanjing E. Rd, Songshan, Taipei",6,12000,2025/1/1,2025/2/1,https://placehold.co/800x600/e8e8e8/999?text=Expired,photo,,,,,,,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE,,
+xinyi-5F,台北市信義區,"Xinyi, Taipei","台北市信義區信義路五段50號5樓","5F, No.50, Sec.5, Xinyi Rd, Xinyi, Taipei",26.4,15000,2026/3/15,2026/4/15,https://placehold.co/800x600/e8e8e8/999?text=Room+A,photo,https://placehold.co/800x600/d8e8d8/666?text=Room+B,photo,,,,,TRUE,FALSE,TRUE,TRUE,FALSE,TRUE,FALSE,,"Cozy studio in Xinyi district, walking distance to Taipei 101."
+zhongshan-2F,台北市中山區,"Zhongshan, Taipei","台北市中山區南京東路二段30號2樓","2F, No.30, Sec.2, Nanjing E. Rd, Zhongshan, Taipei",33.1,16500,2026/5/1,2026/6/1,,,,,,,,,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,,
+expired-1F,台北市松山區,"Songshan, Taipei","台北市松山區南京東路五段10號1樓","1F, No.10, Sec.5, Nanjing E. Rd, Songshan, Taipei",19.8,12000,2025/1/1,2025/2/1,https://placehold.co/800x600/e8e8e8/999?text=Expired,photo,,,,,,,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE,,
