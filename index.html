@@ -633,7 +633,7 @@
           <div id="listing-wechat-btn-container" style="display: none;">
             <a class="cta-button cta-wechat" id="listing-wechat-btn" href="#" target="_blank" rel="noopener">
               <svg class="cta-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178A1.17 1.17 0 0 1 4.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178 1.17 1.17 0 0 1-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.63.512-5.28 1.786-1.72 1.33-2.675 3.31-2.634 5.354.016.964.304 1.903.811 2.743.3.515.69.986 1.152 1.396.127.118.264.226.401.327 1.457 1.082 3.373 1.573 5.318 1.293.171-.028.35-.04.52-.058l1.658.974a.27.27 0 0 0 .145.047c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.339-1.29a.515.515 0 0 1 .187-.583C23.32 18.623 24 17.079 24 15.34c0-3.37-3.198-6.154-7.062-6.482z"/></svg>
-              微信
+              <span data-i18n="wechat_label">微信</span>
             </a>
           </div>
           <div id="listing-whatsapp-btn-container" style="display: none;">
@@ -724,7 +724,7 @@
     <div id="wechat-btn-container" style="display: none; flex: 1;">
       <a class="cta-button cta-wechat" id="wechat-btn" href="#" target="_blank" rel="noopener">
         <svg class="cta-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178A1.17 1.17 0 0 1 4.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178 1.17 1.17 0 0 1-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.63.512-5.28 1.786-1.72 1.33-2.675 3.31-2.634 5.354.016.964.304 1.903.811 2.743.3.515.69.986 1.152 1.396.127.118.264.226.401.327 1.457 1.082 3.373 1.573 5.318 1.293.171-.028.35-.04.52-.058l1.658.974a.27.27 0 0 0 .145.047c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.339-1.29a.515.515 0 0 1 .187-.583C23.32 18.623 24 17.079 24 15.34c0-3.37-3.198-6.154-7.062-6.482z"/></svg>
-        微信
+        <span data-i18n="wechat_label">微信</span>
       </a>
     </div>
     <div id="whatsapp-btn-container" style="display: none; flex: 1;">
@@ -961,6 +961,7 @@
         listing_title: 'Jerry in the house',
         listing_empty: '目前沒有空房，請保持跟我聯絡！',
         listing_vacancy: '空房',
+        wechat_label: '微信',
       },
       en: {
         title: 'Property Info',
@@ -984,6 +985,7 @@
         listing_title: 'Jerry in the house',
         listing_empty: 'No vacancies at the moment. Stay in touch!',
         listing_vacancy: 'Vacancy',
+        wechat_label: 'WeChat',
       },
     };
 
@@ -1291,7 +1293,9 @@
         grid.style.display = 'none';
         emptyState.style.display = '';
         document.getElementById('listing-empty-msg').textContent = t('listing_empty');
-        
+        document.querySelector('#listing-wechat-btn [data-i18n="wechat_label"]').textContent = t('wechat_label');
+
+
         // Set CTA links for listing empty state - conditional based on config values
         // Line button
         const listingLineContainer = document.getElementById('listing-line-btn-container');
@@ -1415,6 +1419,7 @@
       // WeChat button
       const wechatContainer = document.getElementById('wechat-btn-container');
       const wechatBtn = document.getElementById('wechat-btn');
+      document.querySelector('#wechat-btn [data-i18n="wechat_label"]').textContent = t('wechat_label');
       if (config.WECHAT_ID) {
         wechatContainer.style.display = 'flex';
         wechatBtn.href = 'weixin://dl/chat?username=' + config.WECHAT_ID;
